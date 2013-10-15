@@ -1,4 +1,5 @@
 from os import O_RDONLY, O_WRONLY, O_RDWR
+from io import RawIOBase
 
 from irods.models import DataObject
 from irods.meta import iRODSMetaCollection
@@ -34,10 +35,62 @@ class iRODSDataObject(object):
             'a+': (O_RDWR, True, True),
         }[mode]
         conn, desc = self.manager.open(self.path, flag)
-        return iRODSDataObjectFile(conn, desc)
+        #return iRODSDataObjectFile(conn, desc)
+        #return iRODSDataObjectIO(conn, desc)
 
     def unlink(self):
         self.manager.unlink(self.path)
+
+class iRODSDataObjectIO(RawIOBase):
+    def __init__(self, conn, descriptor):
+        self.conn = conn
+        self.fileno = descriptor
+        self.closed = False
+
+    # Begin implementation of IOBase
+    def close(self):
+        if not self.closed:
+            try:
+                self.conn.close_file(self.desc)
+            except CAT_NO_ACCESS_PERMISSION:
+                pass 
+            finally:
+                self.conn.release()
+        return None
+    
+    def fileno(self):
+        return self.fileno
+
+    # End implementation of IOBase
+
+    # Begin implementation of RawIOBase
+
+    def read(self, size=-1):
+        if size == -1:
+            return self.readall()
+        return self.conn.read_file(self.desc, size)
+
+    def readall(self):
+        return self.conn.read_file(self.desc, -1)
+
+    def readinto(self, b):
+        raise IOError("Unsupported operation")
+
+    def write(self, b):
+        raise IOError("Unsupported operation")
+
+    # End implementation of RawIOBase
+
+    def read_gen(self, chunk_size=4096, close=False):
+        def make_gen():
+            while True:
+                contents = self.read(chunk_size) 
+                if not contents:
+                    break
+                yield contents
+            if close:
+                self.close()
+        return make_gen
 
 class iRODSDataObjectFile(object):
     def __init__(self, conn, descriptor):
