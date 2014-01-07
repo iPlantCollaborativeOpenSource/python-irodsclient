@@ -38,6 +38,9 @@ class iRODSDataObject(object):
         conn, desc = self.manager.open(self.path, flag)
         return BufferedRandom(iRODSDataObjectFileRaw(conn, desc))
 
+    def rename(self, new_name):
+        self.manager.rename(self.path, new_name)
+
     def unlink(self):
         self.manager.unlink(self.path)
 
