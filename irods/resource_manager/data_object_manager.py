@@ -99,3 +99,9 @@ class DataObjectManager(ResourceManager):
             oldFileName=basename(path),
             newFileName=basename(new_name)
         )
+        message = iRODSMessage('RODS_API_REQ', msg=message_body,
+            int_info=api_number['DATA_OBJ_RENAME_AN'])
+
+        with self.sess.pool.get_connection() as conn:
+            conn.send(message)
+            response = conn.recv()
