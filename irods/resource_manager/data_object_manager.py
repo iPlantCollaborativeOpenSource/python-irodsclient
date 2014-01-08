@@ -98,10 +98,20 @@ class DataObjectManager(ResourceManager):
     def rename(self, path, new_name):
         src_file = FileOpenRequest(
             objPath=path,
+            createMode=0,
+            openFlags=0,
+            offset=0,
+            dataSize=0,
+            numThreads=0,
             oprType=RENAME_DATA_OBJ
         )
         dest_file = FileOpenRequest(
             objPath=new_name,
+            createMode=0,
+            openFlags=0,
+            offset=0,
+            dataSize=0,
+            numThreads=0,
             oprType=RENAME_DATA_OBJ
         )
         message_body = FileCopyRequest(dataObjects=[src_file, dest_file])
