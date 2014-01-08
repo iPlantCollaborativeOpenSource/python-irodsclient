@@ -4,7 +4,7 @@ from irods.models import DataObject
 from irods.resource_manager import ResourceManager
 from irods.message import (iRODSMessage, FileReadRequest, FileWriteRequest, 
     FileSeekRequest, FileSeekResponse, FileOpenRequest, FileCloseRequest, 
-    StringStringMap, FileRenameRequest, StringStringIntegerIntegerMap)
+    StringStringMap, FileCopyRequest)
 from irods.exception import (DataObjectDoesNotExist, CollectionDoesNotExist, 
     NoResultFound)
 from irods.api_number import api_number
@@ -13,6 +13,9 @@ from irods.data_object import iRODSDataObject
 SEEK_SET = 0
 SEEK_CUR = 1
 SEEK_END = 2
+
+RENAME_DATA_OBJ = 11
+RENAME_COLL = 12
 
 class DataObjectManager(ResourceManager):
     def get(self, path):
@@ -93,12 +96,15 @@ class DataObjectManager(ResourceManager):
         pass
 
     def rename(self, path, new_name):
-        message_body = FileRenameRequest(
-            fileType=0,
-            RHostAddr_PI=StringStringIntegerIntegerMap('data.iplantc.org', 'iplant', 1247), # TODO need some way to get connection information here...
-            oldFileName=basename(path),
-            newFileName=basename(new_name)
+        src_file = FileOpenRequest(
+            objPath=path,
+            oprType=RENAME_DATA_OBJ
         )
+        dest_file = FileOpenRequest(
+            objPath=new_name,
+            oprType=RENAME_DATA_OBJ
+        )
+        message_body = FileCopyRequest(dataObjects=[src_file, dest_file])
         message = iRODSMessage('RODS_API_REQ', msg=message_body,
             int_info=api_number['DATA_OBJ_RENAME_AN'])
 
