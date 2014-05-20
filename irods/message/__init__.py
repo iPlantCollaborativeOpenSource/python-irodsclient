@@ -142,6 +142,22 @@ class StringStringMap(Message):
     keyWord = ArrayProperty(StringProperty())
     svalue = ArrayProperty(StringProperty()) 
 
+#define RHostAddr_PI "str hostAddr[LONG_NAME_LEN]; str rodsZone[NAME_LEN]; int port; int dummyInt;"
+class StringStringIntegerIntegerMap(Message):
+    _name = 'RHostAddr_PI'
+    def __init__(self, irods_host, client_user, irods_port):
+        super(StringStringIntegerIntegerMap, self).__init__()
+        if irods_host and client_user and irods_port:
+            self.hostAddr = irods_host
+            self.rodsZone = client_user
+            self.port = irods_port
+            self.dummyInt = 0
+
+    hostAddr = StringProperty()
+    rodsZone = StringProperty()
+    port = IntegerProperty()
+    dummyInt = IntegerProperty()
+
 #define GenQueryInp_PI "int maxRows; int continueInx; int partialStartIndex; int options; struct KeyValPair_PI; struct InxIvalPair_PI; struct InxValPair_PI;"
 class GenQueryRequest(Message):
     _name = 'GenQueryInp_PI'
@@ -210,6 +226,14 @@ class FileCloseRequest(Message):
     _name = 'dataObjCloseInp_PI'
     l1descInx = IntegerProperty()
     bytesWritten = LongProperty()
+
+#define fileRenameInp_PI "int fileType; struct RHostAddr_PI; str oldFileName[MAX_NAME_LEN]; str newFileName[MAX_NAME_LEN];"
+class FileRenameRequest(Message):
+    _name = 'fileRenameInp_PI'
+    fileType = IntegerProperty()
+    RHostAddr_PI = SubmessageProperty(StringStringIntegerIntegerMap)
+    oldFileName = StringProperty()
+    newFileName = StringProperty()
 
 #define ModAVUMetadataInp_PI "str *arg0; str *arg1; str *arg2; str *arg3; str *arg4; str *arg5; str *arg6; str *arg7;  str *arg8;  str *arg9;"
 class MetadataRequest(Message):
