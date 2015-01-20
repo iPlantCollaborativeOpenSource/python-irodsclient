@@ -4,8 +4,8 @@ import socket
 import xml.etree.ElementTree as ET
 
 from irods.message.message import Message
-from irods.message.property import (BinaryProperty, StringProperty, 
-    IntegerProperty, LongProperty, ArrayProperty, 
+from irods.message.property import (BinaryProperty, StringProperty,
+    IntegerProperty, LongProperty, ArrayProperty,
     SubmessageProperty)
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class iRODSMessage(object):
         rsp_header_size = sock.recv(4, socket.MSG_WAITALL)
         rsp_header_size = struct.unpack(">i", rsp_header_size)[0]
         rsp_header = sock.recv(rsp_header_size, socket.MSG_WAITALL)
-            
+
         xml_root = ET.fromstring(rsp_header)
         type = xml_root.find('type').text
         msg_len = int(xml_root.find('msgLen').text)
@@ -34,7 +34,7 @@ class iRODSMessage(object):
         message = sock.recv(msg_len, socket.MSG_WAITALL) if msg_len != 0 else None
         error = sock.recv(err_len, socket.MSG_WAITALL) if err_len != 0 else None
         bs = sock.recv(bs_len, socket.MSG_WAITALL) if bs_len != 0 else None
-    
+
         #if message:
             #logger.debug(message)
 
@@ -45,10 +45,10 @@ class iRODSMessage(object):
         msg_header = "<MsgHeader_PI><type>%s</type><msgLen>%d</msgLen>\
             <errorLen>%d</errorLen><bsLen>%d</bsLen><intInfo>%d</intInfo>\
             </MsgHeader_PI>" % (
-                self.type, 
-                len(main_msg) if main_msg else 0, 
-                len(self.error) if self.error else 0, 
-                len(self.bs) if self.bs else 0, 
+                self.type,
+                len(main_msg) if main_msg else 0,
+                len(self.error) if self.error else 0,
+                len(self.bs) if self.bs else 0,
                 self.int_info if self.int_info else 0
             )
         msg_header_length = struct.pack(">i", len(msg_header))
@@ -68,7 +68,7 @@ class StartupPack(Message):
     def __init__(self, proxy_user, client_user):
         super(StartupPack, self).__init__()
         if proxy_user and client_user:
-            self.irodsProt = 1 
+            self.irodsProt = 1
             self.connectCnt = 0
             self.proxyUser, self.proxyRcatZone = proxy_user
             self.clientUser, self.clientRcatZone = client_user
@@ -112,7 +112,7 @@ class IntegerIntegerMap(Message):
     inx = ArrayProperty(IntegerProperty())
     ivalue = ArrayProperty(IntegerProperty())
 
-#define InxValPair_PI "int isLen; int *inx(isLen); str *svalue[isLen];" 
+#define InxValPair_PI "int isLen; int *inx(isLen); str *svalue[isLen];"
 class IntegerStringMap(Message):
     _name = 'InxValPair_PI'
     def __init__(self, data=None):
@@ -122,6 +122,26 @@ class IntegerStringMap(Message):
             self.isLen = len(data)
             self.inx = data.keys()
             self.svalue = data.values()
+
+    isLen = IntegerProperty()
+    inx = ArrayProperty(IntegerProperty())
+    svalue = ArrayProperty(StringProperty())
+
+#define InxValPair_PI "int isLen; int *inx(isLen); str *svalue[isLen];"
+class IntegerArrayStringMap(Message):
+    _name = 'InxValPair_PI'
+    def __init__(self, data=None):
+        super(IntegerArrayStringMap, self).__init__()
+        self.isLen = 0
+        if data:
+            for v in data.values():
+                self.isLen += len(v)
+            self.inx = []
+            self.svalue = []
+            for k, v in data.items():
+                for vi in v:
+                    self.inx.append(k)
+                    self.svalue.append(vi)
 
     isLen = IntegerProperty()
     inx = ArrayProperty(IntegerProperty())
@@ -140,7 +160,7 @@ class StringStringMap(Message):
 
     ssLen = IntegerProperty()
     keyWord = ArrayProperty(StringProperty())
-    svalue = ArrayProperty(StringProperty()) 
+    svalue = ArrayProperty(StringProperty())
 
 #define GenQueryInp_PI "int maxRows; int continueInx; int partialStartIndex; int options; struct KeyValPair_PI; struct InxIvalPair_PI; struct InxValPair_PI;"
 class GenQueryRequest(Message):
@@ -153,7 +173,7 @@ class GenQueryRequest(Message):
     InxIvalPair_PI = SubmessageProperty(IntegerIntegerMap)
     InxValPair_PI = SubmessageProperty(IntegerStringMap)
 
-#define SqlResult_PI "int attriInx; int reslen; str *value(rowCnt)(reslen);"  
+#define SqlResult_PI "int attriInx; int reslen; str *value(rowCnt)(reslen);"
 class GenQueryResponseColumn(Message):
     _name = 'SqlResult_PI'
     attriInx = IntegerProperty()
@@ -231,5 +251,5 @@ def empty_gen_query_out(cols):
         rowCnt=0,
         attriCnt=len(cols),
         SqlResult_PI=sql_results
-    )  
+    )
     return gqo
