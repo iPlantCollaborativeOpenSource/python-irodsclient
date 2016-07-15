@@ -2,6 +2,11 @@
 
 For version 0.5.0, see https://github.com/irods/python-irodsclient/
 
+Or, install via GitHub:
+```
+pip install git+git://github.com/irods/python-irodsclient.git
+```
+
 ---
 
 python-irodsclient - version 0.4.0
