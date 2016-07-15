@@ -1,4 +1,10 @@
-python-irodsclient
+# Now maintained by iRODS at [irods/python-irodsclient](https://github.com/irods/python-irodsclient/)
+
+For version 0.5.0, see https://github.com/irods/python-irodsclient/
+
+---
+
+python-irodsclient - version 0.4.0
 ============
 
 [iRODS](https://www.irods.org) is an open-source distributed filesystem manager.  This a client API implemented in python.
